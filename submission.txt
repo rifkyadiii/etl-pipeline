@@ -1,0 +1,20 @@
+Cara menjalankan skrip ETL pipeline:
+1. Pastikan Anda berada di direktori root proyek submission-pemda.
+2. Jalankan skrip utama ETL (main.py) menggunakan perintah:
+   python main.py
+
+Cara menjalankan unit test:
+1. Pastikan berada di direktori root proyek submission-pemda.
+2. Gunakan pytest untuk menjalankan unit test yang ada di direktori `tests`. Jalankan perintah:
+   PYTHONPATH=. pytest
+
+Cara menjalankan test coverage:
+1. Pastikan Anda telah menginstal plugin coverage untuk pytest. Jika belum, instal dengan perintah:
+   pip install pytest-cov
+2. Dari direktori root proyek submission-pemda, jalankan pytest dengan opsi coverage:
+   PYTHONPATH=. pytest --cov=.
+
+URL Google Sheets: https://docs.google.com/spreadsheets/d/1Imm7m1xbbuzHGUF6SfR5yAHfsZwT4YmfUumjD81ZWDY/edit?usp=sharing
+*Isi google sheet akan berbeda ketika menjalankan unit test dan ketika menjalankan main.py
+
+productsdb.sql di extract manual menggunakan script: pg_dump -U [user] -d [nama_database] -f [nama_file].sql
