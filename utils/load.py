@@ -9,6 +9,9 @@ from sqlalchemy.exc import SQLAlchemyError, ProgrammingError
 from gspread.exceptions import APIError, WorksheetNotFound
 import psycopg2
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Konfigurasi Logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -17,10 +20,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 CSV_OUTPUT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'products.csv'))
 
 # Konfigurasi untuk Google Sheets
-GSHEET_URL = os.getenv('GSHEET_URL', 'https://docs.google.com/spreadsheets/d/1Imm7m1xbbuzHGUF6SfR5yAHfsZwT4YmfUumjD81ZWDY/edit?usp=sharing')
-GSHEET_SERVICE_ACCOUNT_PATH = os.getenv('GSHEET_SERVICE_ACCOUNT_PATH', 'google-sheets-api.json')
-GSHEET_SHEET_NAME = os.getenv('GSHEET_SHEET_NAME', 'Sheet1')
-
+GSHEET_URL = os.getenv('GSHEET_URL')
+GSHEET_SERVICE_ACCOUNT_PATH = os.getenv('GSHEET_SERVICE_ACCOUNT_PATH')
+GSHEET_SHEET_NAME = os.getenv('GSHEET_SHEET_NAME')
 
 def prepare_dataframe_for_export(df):
     """Mempersiapkan DataFrame untuk diekspor ke berbagai format."""
@@ -113,16 +115,17 @@ def load_to_gsheets(df):
     
 def load_to_postgres(df):
     """Menyimpan DataFrame ke PostgreSQL."""
-    db_url = os.getenv('POSTGRES_DB_URL', 'postgresql+psycopg2://developer:secretpassword@localhost:5432/productsdb')
-    table_name = os.getenv('POSTGRES_TABLE_NAME', 'productstoscrape')
+    
+    POSTGRES_DB_URL = os.getenv('POSTGRES_DB_URL')
+    DB_TABLE = os.getenv('DB_TABLE')
 
-    logging.info(f"Loading data to PostgreSQL: {db_url} - Table: {table_name}")
+    logging.info(f"Loading data to PostgreSQL: {POSTGRES_DB_URL} - Table: {DB_TABLE}")
 
     try:
-        engine = create_engine(db_url)
+        engine = create_engine(POSTGRES_DB_URL)
         with engine.connect() as conn:
-            df.to_sql(table_name, con=conn, if_exists='append', index=False)
-        logging.info(f"Successfully loaded {len(df)} rows to PostgreSQL table '{table_name}'")
+            df.to_sql(DB_TABLE, con=conn, if_exists='append', index=False)
+        logging.info(f"Successfully loaded {len(df)} rows to PostgreSQL table '{DB_TABLE}'")
         return True
     except (SQLAlchemyError, ProgrammingError) as e:
         logging.error(f"PostgreSQL error: {e}")
@@ -130,7 +133,6 @@ def load_to_postgres(df):
     except Exception as e:
         logging.error(f"Unexpected error saving to PostgreSQL: {e}")
         return False
-
 
 def load_data(df):
     """Fungsi utama untuk memuat data ke semua repositori."""

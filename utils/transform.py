@@ -24,7 +24,7 @@ def transform_data(df):
 
     # 4. Penanganan Duplikat
     initial_rows = len(df)
-    df.drop_duplicates(inplace=True)
+    df = df.drop_duplicates()
     dropped_count = initial_rows - len(df)
     logging.info(f"Dropped {dropped_count} duplicate rows.")
 
@@ -63,20 +63,24 @@ def handle_missing_values(df):
     if 'Rating' in df.columns:
         df['Rating'] = pd.to_numeric(df['Rating'], errors='coerce')
         mean_rating = df['Rating'].mean()
-        df['Rating'].fillna(mean_rating, inplace=True)
+        # Timpa ulang kolomnya, jangan pakai inplace
+        df['Rating'] = df['Rating'].fillna(mean_rating) 
         logging.info(f"Handled missing values in 'Rating' by filling with mean: {mean_rating:.2f}")
 
     if 'Colors' in df.columns:
         df['Colors'] = pd.to_numeric(df['Colors'], errors='coerce')
-        df['Colors'].fillna(0, inplace=True)
+        # Timpa ulang kolomnya, jangan pakai inplace
+        df['Colors'] = df['Colors'].fillna(0) 
         logging.info("Handled missing values in 'Colors' by filling with 0.")
 
     if 'Size' in df.columns:
-        df['Size'].fillna('Unknown', inplace=True)
+        # Timpa ulang kolomnya, jangan pakai inplace
+        df['Size'] = df['Size'].fillna('Unknown') 
         logging.info("Handled missing values in 'Size' by filling with 'Unknown'.")
 
     if 'Gender' in df.columns:
-        df['Gender'].fillna('Unknown', inplace=True)
+        # Timpa ulang kolomnya, jangan pakai inplace
+        df['Gender'] = df['Gender'].fillna('Unknown') 
         logging.info("Handled missing values in 'Gender' by filling with 'Unknown'.")
 
     return df

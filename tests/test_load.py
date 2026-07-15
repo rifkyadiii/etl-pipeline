@@ -62,7 +62,7 @@ class TestLoadModule(unittest.TestCase):
 
     def test_prepare_dataframe_for_export(self):
         df_export = load.prepare_dataframe_for_export(self.df)
-        self.assertEqual(df_export['timestamp'].dtype, object)
+        self.assertTrue(pd.api.types.is_string_dtype(df_export['timestamp']))
 
 if __name__ == '__main__':
     unittest.main()
