@@ -1,4 +1,4 @@
-# ⚙️ ETL Pipeline Simulation Portfolio
+# ⚙️ ETL Pipeline Simulation
 
 Sebuah simulasi interaktif dari proses **Extract, Transform, dan Load (ETL)** yang dibangun menggunakan Python dan Streamlit. Proyek ini dibuat sebagai portofolio *Data Engineering* untuk mendemonstrasikan proses penarikan data secara *real-time*, pembersihan data, hingga pemuatan ke Cloud Database dan Google Sheets.
 
