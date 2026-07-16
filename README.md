@@ -1,6 +1,6 @@
 # ⚙️ ETL Pipeline Simulation
 
-Sebuah simulasi interaktif dari proses **Extract, Transform, dan Load (ETL)** yang dibangun menggunakan Python dan Streamlit. Proyek ini dibuat sebagai portofolio *Data Engineering* untuk mendemonstrasikan proses penarikan data secara *real-time*, pembersihan data, hingga pemuatan ke Cloud Database dan Google Sheets.
+Simulasi interaktif dari proses **Extract, Transform, dan Load (ETL)** yang dibangun menggunakan Python dan Streamlit. Proyek ini dibuat sebagai portofolio *Data Engineering* untuk mendemonstrasikan proses penarikan data secara *real-time*, pembersihan data, hingga pemuatan ke Cloud Database dan Google Sheets.
 
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -17,7 +17,7 @@ Sebuah simulasi interaktif dari proses **Extract, Transform, dan Load (ETL)** ya
   - 📊 **Google Sheets** (menggunakan Google Service Account)
   - 📄 **CSV & SQL Dump** (Fitur *download* lokal)
 - **Live Terminal Logging:** Menampilkan proses *backend* secara *real-time* ke layar antarmuka pengguna dengan fitur *auto-scroll* dan *light mode*, dilengkapi sensor keamanan (*regex*) untuk menyembunyikan *password* dan ID.
-- **Automated Testing:** Memiliki skrip pengujian unit (*Unit Test*) menggunakan `pytest` dengan *coverage* yang tinggi.
+- **Automated Testing:** Memiliki skrip pengujian unit (*Unit Test*) menggunakan `pytest`.
 
 ## 🏗️ Arsitektur Direktori
 
@@ -63,7 +63,6 @@ pip install -r requirements.txt
 ### 3. Konfigurasi Variabel Lingkungan (.env)
 
 Buat file bernama `.env` di direktori utama, lalu isi dengan kredensial Anda.
-*(Catatan: Jangan pernah mengunggah file `.env` asli atau file JSON Google API Anda ke GitHub!)*
 
 ```env
 POSTGRES_DB_URL="postgresql+psycopg2://<user>:<password>@<host>:<port>/<db_name>?sslmode=require"
@@ -90,19 +89,9 @@ python -m pytest --cov=utils tests/
 
 ```
 
-## ☁️ Strategi Deployment Cloud
+## ☁️ Deployment Cloud
 
 * **Frontend:** Di-*deploy* menggunakan **Streamlit Community Cloud**. Kredensial `.env` disuntikkan secara aman melalui fitur *Streamlit Secrets*.
 * **Database:** Menggunakan PostgreSQL dari **Aiven Cloud**.
 
 ---
-
-**Dibuat oleh [Nama Anda]** - *Data Engineer / Python Developer* Hubungi saya di [LinkedIn](https://linkedin.com/in/username) atau [Email](https://www.google.com/search?q=mailto%3Aemail%40anda.com).
-
-```
-
-**Saran tambahan sebelum Anda melakukan `git push` ke GitHub:**
-1. Pastikan Anda mengganti bagian `[Nama Anda]`, `[LinkedIn]`, dan URL *clone* di bagian paling bawah file di atas.
-2. Pastikan file `.env` dan `google-sheets-api.json` sudah dimasukkan ke dalam file `.gitignore` agar kredensial Anda tidak bocor ke publik! Anda cukup mengunggah kodenya saja ke GitHub.
-
-```
