@@ -51,7 +51,6 @@ def load_to_gsheets(df):
     """Menyimpan DataFrame ke Google Sheets."""
     logging.info(f"Loading data to Google Sheets: {GSHEET_URL} - {GSHEET_SHEET_NAME}")
 
-    # 2. Membaca kredensial HANYA dari variabel JSON
     gsheet_json_env = os.getenv('GSHEET_JSON_DATA')
     if not gsheet_json_env:
         logging.error("Kredensial Google Sheets tidak ditemukan. Pastikan GSHEET_JSON_DATA sudah diisi.")
@@ -67,7 +66,6 @@ def load_to_gsheets(df):
         logging.error(f"Gagal memparsing GSHEET_JSON_DATA: {e}")
         return False
 
-    # 3. Eksekusi koneksi & update data
     try:
         sheet_id = None
         if '/d/' in GSHEET_URL:
@@ -79,7 +77,6 @@ def load_to_gsheets(df):
             logging.error("Invalid Google Sheets URL format")
             return False
 
-        # Gunakan creds yang sudah berhasil dibuat dari JSON di atas
         gc = gspread.authorize(creds)
 
         try:
