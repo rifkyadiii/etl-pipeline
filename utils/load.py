@@ -51,30 +51,20 @@ def load_to_gsheets(df):
     """Menyimpan DataFrame ke Google Sheets."""
     logging.info(f"Loading data to Google Sheets: {GSHEET_URL} - {GSHEET_SHEET_NAME}")
 
-    if Path(GSHEET_SERVICE_ACCOUNT_PATH).exists():
+    gsheet_json_env = os.getenv('GSHEET_JSON_DATA')
+    if gsheet_json_env:
         try:
-            creds = Credentials.from_service_account_file(
-                GSHEET_SERVICE_ACCOUNT_PATH,
+            info = json.loads(gsheet_json_env)
+            creds = Credentials.from_service_account_info(
+                info,
                 scopes=['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
             )
         except Exception as e:
-            logging.error(f"Error reading local service account file: {e}")
-            return False  
-    else:
-        gsheet_json_env = os.getenv('GSHEET_JSON_DATA')
-        if gsheet_json_env:
-            try:
-                info = json.loads(gsheet_json_env)
-                creds = Credentials.from_service_account_info(
-                    info,
-                    scopes=['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-                )
-            except Exception as e:
-                logging.error(f"Gagal memparsing GSHEET_JSON_DATA dari cloud secrets: {e}")
-                return False
-        else:
-            logging.error("Kredensial Google Sheets tidak ditemukan (File JSON lokal tidak ada, dan Cloud Secrets kosong).")
+            logging.error(f"Gagal memparsing GSHEET_JSON_DATA dari cloud secrets: {e}")
             return False
+    else:
+        logging.error("Kredensial Google Sheets tidak ditemukan (File JSON lokal tidak ada, dan Cloud Secrets kosong).")
+        return False
 
     try:
         sheet_id = None
