@@ -85,6 +85,8 @@ if 'transformed_data' not in st.session_state:
     st.session_state.transformed_data = None
 if 'loaded' not in st.session_state:
     st.session_state.loaded = False
+for _log_key in ("extract_logs", "transform_logs", "load_logs"):
+    st.session_state.setdefault(_log_key, [])
 
 # ==========================================
 # SIDEBAR — STATUS PIPELINE
@@ -113,6 +115,9 @@ with st.sidebar:
         st.session_state.extracted_data = None
         st.session_state.transformed_data = None
         st.session_state.loaded = False
+        st.session_state.extract_logs = []
+        st.session_state.transform_logs = []
+        st.session_state.load_logs = []
         st.rerun()
 
     st.divider()
@@ -120,67 +125,82 @@ with st.sidebar:
     st.caption("Dibuat dengan Streamlit • BeautifulSoup • PostgreSQL • Google Sheets")
 
 # ==========================================
-# LOG HANDLER (AUTO-SCROLL, LIGHT MODE, TAMPILAN TERMINAL)
+# LOG TERMINAL (AUTO-SCROLL, LIGHT MODE, PERSISTEN DI SESSION_STATE)
 # ==========================================
+def build_terminal_html(log_lines):
+    """Membangun HTML terminal log dari daftar baris log — dipakai baik saat proses
+    berjalan (live) maupun saat merender ulang log lama setelah script Streamlit rerun
+    (misalnya akibat klik tombol download)."""
+    log_html = "<br>".join(log_lines)
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ margin: 0; padding: 0; background-color: transparent; }}
+            #terminal-bar {{
+                background: #E2E8F0; border-radius: 8px 8px 0 0; padding: 7px 10px;
+                display: flex; gap: 6px; box-sizing: border-box;
+            }}
+            .dot {{ width: 10px; height: 10px; border-radius: 50%; }}
+            #log-container {{
+                background-color: #ffffff;
+                color: #334155;
+                font-family: 'SFMono-Regular', Consolas, monospace;
+                font-size: 12.5px;
+                padding: 10px 12px;
+                height: 350px;
+                overflow-y: auto;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                border: 1px solid #e0e0e0;
+                border-top: none;
+                border-radius: 0 0 8px 8px;
+                box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+            }}
+            #log-container::-webkit-scrollbar {{ width: 8px; }}
+            #log-container::-webkit-scrollbar-track {{ background: #f1f1f1; border-radius: 4px; }}
+            #log-container::-webkit-scrollbar-thumb {{ background: #c1c1c1; border-radius: 4px; }}
+            #log-container::-webkit-scrollbar-thumb:hover {{ background: #a8a8a8; }}
+        </style>
+    </head>
+    <body>
+        <div id="terminal-bar">
+            <div class="dot" style="background:#FF5F56;"></div>
+            <div class="dot" style="background:#FFBD2E;"></div>
+            <div class="dot" style="background:#27C93F;"></div>
+        </div>
+        <div id="log-container">{log_html}</div>
+        <script>
+            var logDiv = document.getElementById("log-container");
+            logDiv.scrollTop = logDiv.scrollHeight;
+        </script>
+    </body>
+    </html>
+    """
+
+
+def render_terminal(placeholder, log_lines):
+    with placeholder:
+        components.html(build_terminal_html(log_lines), height=400)
+
+
 class StreamlitLogHandler(logging.Handler):
-    def __init__(self, placeholder):
+    """Handler logging yang menulis ke placeholder Streamlit SEKALIGUS menyimpan
+    setiap baris ke st.session_state, supaya log tidak hilang saat script rerun
+    (misalnya karena tombol download diklik)."""
+    def __init__(self, placeholder, session_key):
         super().__init__()
         self.placeholder = placeholder
-        self.logs = []
+        self.session_key = session_key
+        st.session_state.setdefault(self.session_key, [])
+        self.logs = st.session_state[self.session_key]
 
     def emit(self, record):
         log_entry = self.format(record)
         self.logs.append(log_entry)
-        log_html = "<br>".join(self.logs)
-
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body {{ margin: 0; padding: 0; background-color: transparent; }}
-                #terminal-bar {{
-                    background: #E2E8F0; border-radius: 8px 8px 0 0; padding: 7px 10px;
-                    display: flex; gap: 6px; box-sizing: border-box;
-                }}
-                .dot {{ width: 10px; height: 10px; border-radius: 50%; }}
-                #log-container {{
-                    background-color: #ffffff;
-                    color: #334155;
-                    font-family: 'SFMono-Regular', Consolas, monospace;
-                    font-size: 12.5px;
-                    padding: 10px 12px;
-                    height: 350px;
-                    overflow-y: auto;
-                    white-space: pre-wrap;
-                    word-wrap: break-word;
-                    border: 1px solid #e0e0e0;
-                    border-top: none;
-                    border-radius: 0 0 8px 8px;
-                    box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
-                }}
-                #log-container::-webkit-scrollbar {{ width: 8px; }}
-                #log-container::-webkit-scrollbar-track {{ background: #f1f1f1; border-radius: 4px; }}
-                #log-container::-webkit-scrollbar-thumb {{ background: #c1c1c1; border-radius: 4px; }}
-                #log-container::-webkit-scrollbar-thumb:hover {{ background: #a8a8a8; }}
-            </style>
-        </head>
-        <body>
-            <div id="terminal-bar">
-                <div class="dot" style="background:#FF5F56;"></div>
-                <div class="dot" style="background:#FFBD2E;"></div>
-                <div class="dot" style="background:#27C93F;"></div>
-            </div>
-            <div id="log-container">{log_html}</div>
-            <script>
-                var logDiv = document.getElementById("log-container");
-                logDiv.scrollTop = logDiv.scrollHeight;
-            </script>
-        </body>
-        </html>
-        """
-        with self.placeholder:
-            components.html(html_content, height=400)
+        st.session_state[self.session_key] = self.logs
+        render_terminal(self.placeholder, self.logs)
 
 
 def standby_terminal():
@@ -196,6 +216,16 @@ def standby_terminal():
         ⏳ Waiting for process to start...
     </div>
     """
+
+
+def show_log_area(placeholder, session_key):
+    """Dipanggil di SETIAP rerun (bukan cuma pas tombol diklik): kalau ada log
+    tersimpan untuk fase ini, tampilkan lagi; kalau belum ada, tampilkan standby."""
+    saved_logs = st.session_state.get(session_key, [])
+    if saved_logs:
+        render_terminal(placeholder, saved_logs)
+    else:
+        placeholder.markdown(standby_terminal(), unsafe_allow_html=True)
 
 
 def stat_card(label, value):
@@ -244,12 +274,13 @@ with tab1:
     with col_right:
         st.markdown("##### 📝 Process Logs")
         log_placeholder1 = st.empty()
-        log_placeholder1.markdown(standby_terminal(), unsafe_allow_html=True)
+        show_log_area(log_placeholder1, "extract_logs")
 
     with col_left:
         st.write("Mengambil data mentah (raw data) dari website menggunakan **BeautifulSoup**.")
         if st.button("▶️ Run Extract Phase", type="primary", key="btn_ext", width='stretch'):
-            st_handler = StreamlitLogHandler(log_placeholder1)
+            st.session_state.extract_logs = []
+            st_handler = StreamlitLogHandler(log_placeholder1, "extract_logs")
             st_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
             logging.getLogger().addHandler(st_handler)
 
@@ -289,7 +320,7 @@ with tab2:
     with col_right:
         st.markdown("##### 📝 Process Logs")
         log_placeholder2 = st.empty()
-        log_placeholder2.markdown(standby_terminal(), unsafe_allow_html=True)
+        show_log_area(log_placeholder2, "transform_logs")
 
     with col_left:
         st.write("Membersihkan data, mengonversi mata uang ke IDR, menangani nilai kosong "
@@ -299,7 +330,8 @@ with tab2:
             st.warning("⚠️ Silakan jalankan proses Extract di Tab 1 terlebih dahulu.")
         else:
             if st.button("▶️ Run Transform Phase", type="primary", key="btn_tf", width='stretch'):
-                st_handler = StreamlitLogHandler(log_placeholder2)
+                st.session_state.transform_logs = []
+                st_handler = StreamlitLogHandler(log_placeholder2, "transform_logs")
                 st_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
                 logging.getLogger().addHandler(st_handler)
 
@@ -342,7 +374,7 @@ with tab3:
     with col_right:
         st.markdown("##### 📝 Process Logs")
         log_placeholder3 = st.empty()
-        log_placeholder3.markdown(standby_terminal(), unsafe_allow_html=True)
+        show_log_area(log_placeholder3, "load_logs")
 
     with col_left:
         st.write("Memuat data bersih ke **Cloud PostgreSQL** dan **Google Sheets**.")
@@ -351,7 +383,8 @@ with tab3:
             st.warning("⚠️ Silakan jalankan proses Transform di Tab 2 terlebih dahulu.")
         else:
             if st.button("▶️ Run Load Phase", type="primary", key="btn_ld", width='stretch'):
-                st_handler = StreamlitLogHandler(log_placeholder3)
+                st.session_state.load_logs = []
+                st_handler = StreamlitLogHandler(log_placeholder3, "load_logs")
                 st_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
                 logging.getLogger().addHandler(st_handler)
 
@@ -387,7 +420,7 @@ with tab3:
                     st.download_button(
                         label="📥 Download Cleaned CSV",
                         data=csv_data,
-                        file_name='products_cleaned.csv',
+                        file_name='products.csv',
                         mime='text/csv',
                         width='stretch'
                     )
