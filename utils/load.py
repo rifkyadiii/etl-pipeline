@@ -51,21 +51,23 @@ def load_to_gsheets(df):
     """Menyimpan DataFrame ke Google Sheets."""
     logging.info(f"Loading data to Google Sheets: {GSHEET_URL} - {GSHEET_SHEET_NAME}")
 
+    # 2. Membaca kredensial HANYA dari variabel JSON
     gsheet_json_env = os.getenv('GSHEET_JSON_DATA')
-    if gsheet_json_env:
-        try:
-            info = json.loads(gsheet_json_env)
-            creds = Credentials.from_service_account_info(
-                info,
-                scopes=['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-            )
-        except Exception as e:
-            logging.error(f"Gagal memparsing GSHEET_JSON_DATA dari cloud secrets: {e}")
-            return False
-    else:
-        logging.error("Kredensial Google Sheets tidak ditemukan (File JSON lokal tidak ada, dan Cloud Secrets kosong).")
+    if not gsheet_json_env:
+        logging.error("Kredensial Google Sheets tidak ditemukan. Pastikan GSHEET_JSON_DATA sudah diisi.")
         return False
 
+    try:
+        info = json.loads(gsheet_json_env)
+        creds = Credentials.from_service_account_info(
+            info,
+            scopes=['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+        )
+    except Exception as e:
+        logging.error(f"Gagal memparsing GSHEET_JSON_DATA: {e}")
+        return False
+
+    # 3. Eksekusi koneksi & update data
     try:
         sheet_id = None
         if '/d/' in GSHEET_URL:
@@ -77,10 +79,7 @@ def load_to_gsheets(df):
             logging.error("Invalid Google Sheets URL format")
             return False
 
-        creds = Credentials.from_service_account_file(
-            GSHEET_SERVICE_ACCOUNT_PATH,
-            scopes=['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-        )
+        # Gunakan creds yang sudah berhasil dibuat dari JSON di atas
         gc = gspread.authorize(creds)
 
         try:
@@ -118,6 +117,7 @@ def load_to_gsheets(df):
 
         logging.info(f"Successfully loaded {len(df)} rows to Google Sheets")
         return True
+        
     except APIError as e:
         logging.error(f"Google Sheets API error: {e}")
         return False
