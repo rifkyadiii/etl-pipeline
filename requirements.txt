@@ -1,9 +1,11 @@
+streamlit==1.59.2
 beautifulsoup4==4.15.0
 gspread==6.2.1
 numpy==2.5.1
 pandas==3.0.3
 protobuf==7.35.1
 psycopg2_binary==2.9.10
+pytest==9.1.1
 python-dotenv==1.2.2
 Requests==2.34.2
 SQLAlchemy==2.0.51
