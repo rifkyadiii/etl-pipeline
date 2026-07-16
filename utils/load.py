@@ -59,8 +59,7 @@ def load_to_gsheets(df):
             )
         except Exception as e:
             logging.error(f"Error reading local service account file: {e}")
-            return False
-            
+            return False  
     else:
         gsheet_json_env = os.getenv('GSHEET_JSON_DATA')
         if gsheet_json_env:
@@ -176,12 +175,9 @@ def load_data(df):
         all_loads_successful = False
 
     # 3. Google Sheets export
-    if Path(GSHEET_SERVICE_ACCOUNT_PATH).exists():
-        gsheets_success = load_to_gsheets(df_export)
-        if not gsheets_success:
-            logging.error("Gagal menyimpan ke Google Sheets!")
-            all_loads_successful = False
-    else:
-        logging.warning(f"Melewati ekspor Google Sheets - file kredensial tidak ditemukan: {GSHEET_SERVICE_ACCOUNT_PATH}")
-
+    gsheets_success = load_to_gsheets(df_export)
+    if not gsheets_success:
+        logging.error("Gagal menyimpan ke Google Sheets!")
+        all_loads_successful = False
+        
     return all_loads_successful
