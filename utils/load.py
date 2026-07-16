@@ -119,7 +119,7 @@ def load_to_postgres(df):
     POSTGRES_DB_URL = os.getenv('POSTGRES_DB_URL')
     DB_TABLE = os.getenv('DB_TABLE')
 
-    logging.info(f"Loading data to PostgreSQL: {POSTGRES_DB_URL} - Table: {DB_TABLE}")
+    logging.info(f"Loading data to PostgreSQL: postgresql+psycopg2://***:***@***:***/***?sslmode=require - Table: {DB_TABLE}")
 
     try:
         engine = create_engine(POSTGRES_DB_URL)
